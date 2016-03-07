@@ -140,9 +140,11 @@ static int send_md5(unsigned char packet_id, unsigned char *md5data) {
 	unsigned char md5[MD5_LEN];
 	unsigned short len = htons(sizeof(struct eap) + TYPE_LEN +
 	MD5_LEN_LEN + MD5_LEN + username_length);
+	int password_length = strlen(password);
 
 	memset(md5, 0, MD5_LEN);
-	memcpy(md5, password, MD5_LEN);
+	memcpy(md5, password,
+    password_length <= MD5_LEN ? password_length : MD5_LEN);
 
 	int i;
 	for (i = 0; i < MD5_LEN; i++)

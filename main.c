@@ -29,7 +29,7 @@
 void usage(FILE *stream);
 
 int main(int argc, char **argv) {
-	int ch;
+	int ch, password_is_allocated = 0;
 	char *interface = NULL;
 	char *username = NULL;
 	char *password = NULL;
@@ -75,6 +75,7 @@ int main(int argc, char **argv) {
 			fprintf(stderr, "Failed to malloc: %s\n", strerror(errno));
 			exit(-1);
 		}
+		password_is_allocated = 1;
 		printf("Password for %s:", username);
 
 		signal(SIGINT, exit_with_echo_on);
@@ -84,17 +85,19 @@ int main(int argc, char **argv) {
 		fgets(password, PWD_LEN - 1, stdin);
 		echo_on();
 
-		/* replace '\n' with '\0', as it is NOT part of password */
-		password[strlen(password) - 1] = '\0';
+		/* on both my PC and router '\n' isn't included in password */
+		/* password[strlen(password) - 1] = '\0'; */
 		putchar('\n');
 	}
 
 	if (h3c_set_password(password) != SUCCESS) {
 		fprintf(stderr, "Failed to set password.\n");
-		free(password);
+		if (password_is_allocated)
+			free(password);
 		exit(-1);
 	}
-	free(password);
+	if (password_is_allocated)
+		free(password);
 
 	if (h3c_init(interface) != SUCCESS) {
 		fprintf(stderr, "Failed to initialize: %s\n", strerror(errno));
